@@ -1,5 +1,5 @@
 # 전화요금 계정분할 자동화 (Phone Bill Split Automation)
-
+   ![전화요금 계정분할 자동화](./assets/readme_thumbnail.png)
 > **사내 업무지원 도구**\
 > 전화요금 명세서를 계정별로 자동 분할하는 브라우저 기반 웹 애플리케이션
 
