@@ -5,9 +5,7 @@
 
 ## 🌐 바로 사용하기
 
-**GitHub Pages**
-
-👉 https://lazy-mj.github.io/lazy-billsplit/
+**GitHub Pages** 👉 https://lazy-mj.github.io/lazy-billsplit/
 
 별도의 설치 없이 브라우저에서 바로 사용할 수 있습니다.
 
@@ -67,9 +65,6 @@ lazy-billsplit/
 
 ## 💡 향후 계획
 
--   Drag & Drop 업로드
--   검색 기능
--   모바일 UX 개선
 -   업무지원 플랫폼으로 확장
 
 ## 📄 라이선스
