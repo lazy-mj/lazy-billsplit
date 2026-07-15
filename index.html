@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'none'; object-src 'none'; base-uri 'self'; form-action 'none';">
+<title>전화요금 계정분할 자동화</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="shell">
+
+  <!-- ===== 상단 헤더 ===== -->
+  <header class="app-header">
+    <div class="title-row">
+      <div class="title-text">
+        <div class="title-line">
+          <h1>✂️전화요금 계정분할 자동화</h1>
+          <span class="org-tag">업무지원 도구</span>
+        </div>
+        <p class="lock-note">🔒 업로드한 파일은 서버로 전송되지 않고 이 브라우저 안에서만 처리됩니다.</p>
+      </div>
+      <img class="mascot-img" src="assets/mascot.png" alt="ETRI 캐릭터 일러스트">
+    </div>
+  </header>
+
+  <details class="readme">
+    <summary>사용법 펼쳐보기</summary>
+    <div class="body">
+      <ul>
+        <li><b>① 계정 매핑</b>: "계정 매핑 양식 다운로드"로 빈 엑셀을 받아 채운 뒤 업로드하면 자동으로 표에 들어옵니다. 등록한 내용은 이 브라우저에 저장되어 다음 달에도 그대로 남아있습니다 (다른 컴퓨터/브라우저에서는 다시 불러와야 해요).</li>
+        <li><b>② 부서별 전화사용 내역 업로드</b>: 매달 연구지원실(시설관리실)에서 배포하는 원본 파일(부서별 전화사용 내역)을 업로드하고 [분할 실행]을 누르면 계정번호별로 자동 합산됩니다.</li>
+        <li><b>계정 매핑 양식 </b>: 연구지원실(시설관리실) 배포 원본파일의 [번호별요금] 시트에서 부서번호/부서명/성명/전화번호를 복붙하신 뒤 계정번호, 계정책임자를 입력하시면 편해요.</li>
+        <li>매핑 키는 <b>부서번호 + 전화번호</b> 조합입니다 (이름은 보지 않습니다).</li>
+        <li>매핑이 안 되는 번호가 있으면 별도 카드로 보여드립니다.</li>
+      </ul>
+    </div>
+  </details>
+
+  <!-- ===== STEP 인디케이터 ===== -->
+  <ol class="stepper" id="stepper">
+    <li class="step" data-step="1"><span class="dot">1</span><span class="label">계정 매핑</span></li>
+    <li class="arrow">›</li>
+    <li class="step" data-step="2"><span class="dot">2</span><span class="label">부서별 전화사용 내역 업로드</span></li>
+    <li class="arrow">›</li>
+    <li class="step" data-step="3"><span class="dot">3</span><span class="label">결과 확인</span></li>
+  </ol>
+
+  <!-- ===== 오류 배너 영역 (alert 대체) ===== -->
+  <div id="error-banner-zone"></div>
+
+  <!-- ===== CARD 1 : 계정 매핑 ===== -->
+  <section class="card" id="card-mapping" data-card-step="1">
+    <div class="card-head">
+      <h2>① 계정 매핑</h2>
+      <p class="desc">부서번호 + 전화번호 조합으로 각 부서원 별로 계정번호/책임자를 매핑합니다.</p>
+    </div>
+
+    <div class="toolbar">
+      <button class="btn btn-outline" id="download-template-btn">📄 계정 매핑 양식 다운로드</button>
+      <button class="btn btn-outline" id="add-row-btn">➕ 행 추가</button>
+      <button class="btn btn-outline" id="export-mapping-btn">💾 계정 매핑 파일 백업</button>
+      <button class="btn btn-danger-outline" id="clear-mapping-btn">🗑 전체 삭제</button>
+    </div>
+
+    <div class="dropzone" id="mapping-dropzone">
+      <input type="file" id="import-mapping-file" accept=".xlsx,.xls,.xlsm" hidden>
+      <div class="dropzone-inner">
+        <span class="dz-icon">📂</span>
+        <span class="dz-text"><b>계정 매핑 파일을 여기로 끌어다 놓거나</b> 클릭해서 선택하세요</span>
+        <span class="dz-hint">"계정 매핑 양식 다운로드"로 빈 엑셀을 받아 채운 뒤 업로드 해주세요</span>
+      </div>
+    </div>
+
+    <div class="row-between">
+      <label class="checkbox-label">
+        <input type="checkbox" id="persist-toggle" checked>
+        이 PC에 계정매핑 저장
+      </label>
+      <div class="search-box">
+        <span class="search-icon">🔎</span>
+        <input type="text" id="mapping-search" placeholder="이름 · 전화번호 · 부서번호 검색">
+      </div>
+    </div>
+
+    <div id="mapping-status"></div>
+
+    <div class="table-wrap">
+      <table id="mapping-table">
+        <thead>
+          <tr>
+            <th style="width:90px;">부서번호</th>
+            <th>부서명</th>
+            <th>성명</th>
+            <th style="width:90px;">전화번호</th>
+            <th style="width:110px;">계정번호</th>
+            <th>계정책임자</th>
+            <th style="width:44px;"></th>
+          </tr>
+        </thead>
+        <tbody id="mapping-tbody"></tbody>
+      </table>
+    </div>
+    <p class="hint">※ 표 안의 셀은 직접 클릭해서 수정할 수 있습니다. 수정 즉시 저장됩니다.</p>
+  </section>
+
+  <!-- ===== CARD 2 : 전화요금 업로드 ===== -->
+  <section class="card" id="card-upload" data-card-step="2">
+    <div class="card-head">
+      <h2>② 전화요금 업로드</h2>
+      <p class="desc">연구지원실(시설관리실)에서 배포한 원본 파일을 업로드하세요. <code>번호별요금</code> 시트를 자동으로 찾습니다.</p>
+    </div>
+
+    <div class="dropzone" id="raw-dropzone">
+      <input type="file" id="import-raw" accept=".xlsx,.xls,.xlsm" hidden>
+      <div class="dropzone-inner">
+        <span class="dz-icon">📊</span>
+        <span class="dz-text"><b>이번달 전화요금 엑셀 파일을 여기로 끌어다 놓거나</b> 클릭해서 선택하세요</span>
+      </div>
+    </div>
+
+    <select id="sheet-select" class="sheet-select" style="display:none;"></select>
+    <div id="raw-status"></div>
+
+    <!-- 진행 상태 UI -->
+    <ol class="progress" id="progress-steps">
+      <li data-p="idle">파일 선택</li>
+      <li data-p="ready">분석 준비</li>
+      <li data-p="analyzing">분석 중</li>
+      <li data-p="done">완료</li>
+    </ol>
+
+    <div class="row-between">
+      <div class="output-fields">
+        <div class="memo-field">
+          <label for="cost-name-input">종비용명</label>
+          <input type="text" id="cost-name-input" value="공공요금">
+        </div>
+        <div class="memo-field">
+          <label for="memo-input">적요(비고) 문구</label>
+          <input type="text" id="memo-input" value="">
+        </div>
+      </div>
+      <button class="btn btn-primary btn-lg" id="run-split-btn" disabled>▶ 분할 실행</button>
+    </div>
+  </section>
+
+  <!-- ===== CARD 3 : 결과 ===== -->
+  <section class="card" id="result-panel" data-card-step="3" style="display:none;">
+    <div class="card-head">
+      <h2>③ 분할 결과</h2>
+    </div>
+
+    <div class="stat-grid" id="stat-cards"></div>
+
+    <div class="table-wrap">
+      <table id="result-table">
+        <thead>
+          <tr>
+            <th data-sort="deptName">부서명</th>
+            <th data-sort="dept">부서번호</th>
+            <th data-sort="account">계정번호</th>
+            <th data-sort="owner">계정책임자</th>
+            <th data-sort="amount">전화요금</th>
+            <th data-sort="cost">종비용명</th>
+            <th data-sort="memo">적요</th>
+          </tr>
+        </thead>
+        <tbody id="result-tbody"></tbody>
+      </table>
+    </div>
+    <p class="hint">※ 표 머리글을 클릭하면 정렬됩니다. (부서명/부서번호 기준 정렬 시 원래의 부서별 묶음 보기로 돌아갑니다.)</p>
+
+    <div class="toolbar">
+      <button class="btn btn-outline" id="copy-btn">📋 표 복사하기</button>
+      <button class="btn btn-primary btn-lg" id="download-btn">📥 결과 다운로드</button>
+    </div>
+  </section>
+
+  <!-- ===== CARD 4 : 원본 부서별 합계 검증 ===== -->
+  <section class="card" id="validation-panel" data-card-step="3" style="display:none;">
+    <div class="card-head">
+      <h2>④ 원본 부서별 합계와 교차 검증</h2>
+      <p class="desc" id="validation-desc">업로드한 원본 파일 안의 부서별 소계 시트(예: "1.○○연구소")에 있는 부서 전체 전화요금과, 우리가 실행한 분할 결과의 부서별 합계가 일치하는지 확인합니다.</p>
+    </div>
+    <div class="table-wrap">
+      <table id="validation-table">
+        <thead>
+          <tr><th>부서번호</th><th>부서명</th><th>우리 계산 합계</th><th>원본 시트 합계</th><th>차이</th><th>상태</th></tr>
+        </thead>
+        <tbody id="validation-tbody"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ===== CARD 5 : 누락 항목 ===== -->
+  <section class="card card-warn" id="unmatched-panel" data-card-step="3" style="display:none;">
+    <div class="card-head">
+      <h2>⑤ 우리 부서인데 계정 매핑이 안 된 항목</h2>
+      <p class="desc" id="unmatched-desc"></p>
+    </div>
+    <div class="table-wrap">
+      <table id="unmatched-table">
+        <thead><tr><th>부서번호</th><th>부서명(원본)</th><th>성명</th><th>전화번호</th><th>전화요금</th></tr></thead>
+        <tbody id="unmatched-tbody"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <p class="foot-note">모든 계산은 이 브라우저 안에서만 이루어지며 업로드한 파일은 어디로도 전송되지 않습니다. 계정 매핑은 이 브라우저의 로컬 저장소(localStorage)에만 저장되므로, 다른 PC에서 열면 표준 양식 파일 업로드 또는 백업 엑셀로 다시 불러와야 합니다. </p>
+</div>
+
+<div id="toast-zone" class="toast-zone" aria-live="polite"></div>
+
+<script src="js/xlsx.full.min.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
