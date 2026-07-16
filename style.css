@@ -60,7 +60,16 @@ body{
   padding:26px; margin-bottom:22px; box-shadow:0 1px 2px rgba(16,24,40,0.03);
 }
 .card-warn{border-left:4px solid var(--danger);}
-.card-head h2{font-size:18px; margin:0 0 4px; color:var(--ink);}
+.card-head h2{
+  font-size:22px; margin:0 0 6px; color:var(--ink); font-weight:800;
+  display:flex; align-items:center; gap:12px; letter-spacing:-0.01em;
+}
+.step-badge{
+  display:inline-flex; align-items:center; justify-content:center;
+  width:34px; height:34px; border-radius:50%; flex-shrink:0;
+  background:var(--primary); color:#fff; font-size:17px; font-weight:800;
+}
+.step-badge-warn{background:var(--danger);}
 .card-head .desc{font-size:13.5px; color:var(--ink-soft); margin:0 0 18px;}
 
 /* ---------- Buttons ---------- */
@@ -172,10 +181,25 @@ tr.row-mismatch td{background:var(--danger-bg);}
 .toast.error{background:var(--danger);}
 
 /* ---------- Readme / footer ---------- */
-details.readme{margin:8px 0 18px; font-size:13.5px; background:var(--card); border:1px solid var(--border); border-radius:10px; padding:14px 18px;}
-details.readme summary{cursor:pointer; font-weight:700; color:var(--primary);}
-details.readme .body{padding:10px 2px 0; color:var(--ink-soft);}
-details.readme .body ul{margin:6px 0; padding-left:18px;}
+details.readme{
+  margin:8px 0 18px; background:var(--card); border:1px solid var(--border);
+  border-radius:10px; overflow:hidden;
+}
+details.readme summary{
+  cursor:pointer; padding:12px 18px; font-weight:600; color:var(--primary-dark);
+  list-style:none; display:flex; align-items:center; gap:8px; user-select:none;
+}
+details.readme summary::-webkit-details-marker{display:none;}
+details.readme summary::before{
+  content:"▶"; font-size:11px; color:var(--primary); transition:transform .15s;
+}
+details.readme[open] summary::before{transform:rotate(90deg);}
+details.readme .body{
+  padding:4px 18px 18px; font-size:13.5px; color:var(--ink); border-top:1px solid var(--border);
+}
+details.readme .body ul{margin:10px 0 0; padding-left:20px;}
+details.readme .body li{margin-bottom:8px;}
+details.readme .body b{color:var(--primary-dark);}
 .foot-note{font-size:12px; color:var(--ink-soft); margin-top:20px; border-top:1px dashed var(--border); padding-top:14px;}
 .repo-link{display:inline-block; margin-top:8px; color:var(--primary); font-weight:700; text-decoration:none;}
 .repo-link:hover{text-decoration:underline;}
