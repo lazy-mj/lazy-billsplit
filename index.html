@@ -25,7 +25,7 @@
   </header>
 
   <details class="readme">
-    <summary>사용법 펼쳐보기</summary>
+    <summary>📖 사용법 펼쳐보기</summary>
     <div class="body">
       <ul>
         <li><b>① 계정 매핑</b>: "계정 매핑 양식 다운로드"로 빈 엑셀을 받아 채운 뒤 업로드하면 자동으로 표에 들어옵니다. 등록한 내용은 이 브라우저에 저장되어 다음 달에도 그대로 남아있습니다 (다른 컴퓨터/브라우저에서는 다시 불러와야 해요).</li>
@@ -52,7 +52,7 @@
   <!-- ===== CARD 1 : 계정 매핑 ===== -->
   <section class="card" id="card-mapping" data-card-step="1">
     <div class="card-head">
-      <h2>① 계정 매핑</h2>
+      <h2><span class="step-badge">1</span> 계정 매핑</h2>
       <p class="desc">부서번호 + 전화번호 조합으로 각 부서원 별로 계정번호/책임자를 매핑합니다.</p>
     </div>
 
@@ -107,7 +107,7 @@
   <!-- ===== CARD 2 : 전화요금 업로드 ===== -->
   <section class="card" id="card-upload" data-card-step="2">
     <div class="card-head">
-      <h2>② 전화요금 업로드</h2>
+      <h2><span class="step-badge">2</span> 전화요금 업로드</h2>
       <p class="desc">연구지원실(시설관리실)에서 배포한 원본 파일을 업로드하세요. <code>번호별요금</code> 시트를 자동으로 찾습니다.</p>
     </div>
 
@@ -148,7 +148,7 @@
   <!-- ===== CARD 3 : 결과 ===== -->
   <section class="card" id="result-panel" data-card-step="3" style="display:none;">
     <div class="card-head">
-      <h2>③ 분할 결과</h2>
+      <h2><span class="step-badge">3</span> 분할 결과</h2>
     </div>
 
     <div class="stat-grid" id="stat-cards"></div>
@@ -180,7 +180,7 @@
   <!-- ===== CARD 4 : 원본 부서별 합계 검증 ===== -->
   <section class="card" id="validation-panel" data-card-step="3" style="display:none;">
     <div class="card-head">
-      <h2>④ 원본 부서별 합계와 교차 검증</h2>
+      <h2><span class="step-badge">4</span> 원본 부서별 합계와 교차 검증</h2>
       <p class="desc" id="validation-desc">업로드한 원본 파일 안의 부서별 소계 시트(예: "1.○○연구소")에 있는 부서 전체 전화요금과, 우리가 실행한 분할 결과의 부서별 합계가 일치하는지 확인합니다.</p>
     </div>
     <div class="table-wrap">
@@ -196,7 +196,7 @@
   <!-- ===== CARD 5 : 누락 항목 ===== -->
   <section class="card card-warn" id="unmatched-panel" data-card-step="3" style="display:none;">
     <div class="card-head">
-      <h2>⑤ 우리 부서인데 계정 매핑이 안 된 항목</h2>
+      <h2><span class="step-badge step-badge-warn">5</span> 우리 부서인데 계정 매핑이 안 된 항목</h2>
       <p class="desc" id="unmatched-desc"></p>
     </div>
     <div class="table-wrap">
