@@ -43,7 +43,6 @@ body{
 .stepper{
   list-style:none; display:flex; align-items:center; gap:6px; padding:16px 18px; margin:0 0 24px;
   background:var(--card); border:1px solid var(--border); border-radius:12px; flex-wrap:wrap;
-  position:sticky; top:12px; z-index:40; box-shadow:0 4px 14px rgba(16,24,40,0.08);
 }
 .stepper .step{display:flex; align-items:center; gap:8px; color:var(--ink-soft); font-weight:600; font-size:13.5px;}
 .stepper .dot{
@@ -86,6 +85,27 @@ body{
 .btn-primary:hover{filter:brightness(1.06);}
 .btn-primary:disabled{background:#B9CCE0; cursor:not-allowed;}
 .btn-lg{padding:14px 26px; font-size:15.5px;}
+
+/* 분할 실행 버튼만 별도 강조: 그라데이션 + 호버 마이크로 인터랙션 */
+#run-split-btn{
+  background:linear-gradient(135deg, var(--primary) 0%, #7B4FE0 100%);
+  background-size:160% 160%; background-position:0% 50%;
+  border:none; box-shadow:0 4px 14px rgba(91,70,180,0.32);
+  transition:background-position .35s ease, transform .18s ease, box-shadow .18s ease;
+}
+#run-split-btn:hover:not(:disabled){
+  background-position:100% 50%;
+  transform:translateY(-2px);
+  box-shadow:0 10px 22px rgba(91,70,180,0.45);
+  filter:none;
+}
+#run-split-btn:active:not(:disabled){
+  transform:translateY(0);
+  box-shadow:0 3px 10px rgba(91,70,180,0.32);
+}
+#run-split-btn:disabled{
+  background:#B9CCE0; box-shadow:none;
+}
 .btn-outline{background:#fff; color:var(--primary); border-color:var(--primary);}
 .btn-outline:hover{background:var(--secondary);}
 .btn-danger-outline{background:#fff; color:var(--danger); border-color:var(--danger);}
@@ -205,3 +225,40 @@ details.readme .body b{color:var(--primary-dark);}
 .foot-note{font-size:12px; color:var(--ink-soft); margin-top:20px; border-top:1px dashed var(--border); padding-top:14px;}
 .repo-link{display:inline-block; margin-top:8px; color:var(--primary); font-weight:700; text-decoration:none;}
 .repo-link:hover{text-decoration:underline;}
+
+/* ---------- 버튼 툴팁 ---------- */
+[data-tooltip]{position:relative;}
+[data-tooltip]::after{
+  content:attr(data-tooltip);
+  position:absolute; bottom:calc(100% + 10px); left:50%;
+  transform:translateX(-50%) translateY(4px);
+  background:var(--ink); color:#fff; font-size:12px; font-weight:500; line-height:1.5;
+  padding:8px 12px; border-radius:8px; width:max-content; max-width:220px; text-align:center;
+  white-space:normal;
+  opacity:0; pointer-events:none; z-index:60;
+  transition:opacity .15s ease, transform .15s ease;
+  box-shadow:0 6px 16px rgba(16,24,40,0.22);
+}
+[data-tooltip]:hover::after{opacity:1; transform:translateX(-50%) translateY(0);}
+
+/* ---------- 채워진 위험(danger) 버튼 ---------- */
+.btn-danger{background:var(--danger); color:#fff;}
+.btn-danger:hover{filter:brightness(1.08);}
+
+/* ---------- 확인 모달 (native confirm 대체) ---------- */
+.modal-overlay{
+  position:fixed; inset:0; background:rgba(16,24,40,0.45);
+  display:flex; align-items:center; justify-content:center; z-index:200;
+  opacity:0; transition:opacity .18s ease; padding:20px;
+}
+.modal-overlay.show{opacity:1;}
+.modal-box{
+  background:var(--card); border-radius:14px; padding:26px;
+  width:100%; max-width:380px; box-shadow:0 20px 50px rgba(16,24,40,0.25);
+  transform:translateY(10px) scale(.98); transition:transform .18s ease;
+}
+.modal-overlay.show .modal-box{transform:translateY(0) scale(1);}
+.modal-title{font-size:17px; font-weight:800; color:var(--ink); margin-bottom:8px;}
+.modal-message{font-size:13.5px; color:var(--ink-soft); line-height:1.6; margin-bottom:22px;}
+.modal-actions{display:flex; justify-content:flex-end; gap:10px;}
+.modal-actions .btn{padding:10px 18px; font-size:13.5px;}

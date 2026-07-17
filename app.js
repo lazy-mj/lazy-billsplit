@@ -61,6 +61,40 @@ function showError(message){
   zone.appendChild(banner);
 }
 
+/* ---------- 커스텀 확인 모달 (native confirm() 대체) ---------- */
+function showConfirmModal({title='', message='', confirmText='확인', cancelText='취소', danger=false}={}){
+  return new Promise((resolve)=>{
+    const overlay = el('div','modal-overlay');
+    const box = el('div','modal-box');
+    box.setAttribute('role','dialog');
+    box.setAttribute('aria-modal','true');
+    if(title) box.appendChild(el('div','modal-title', title));
+    box.appendChild(el('div','modal-message', message));
+    const actions = el('div','modal-actions');
+    const cancelBtn = el('button','btn btn-outline', cancelText);
+    const confirmBtn = el('button', 'btn '+(danger?'btn-danger':'btn-primary'), confirmText);
+    actions.appendChild(cancelBtn);
+    actions.appendChild(confirmBtn);
+    box.appendChild(actions);
+    overlay.appendChild(box);
+    document.body.appendChild(overlay);
+    requestAnimationFrame(()=> overlay.classList.add('show'));
+
+    function close(result){
+      overlay.classList.remove('show');
+      setTimeout(()=> overlay.remove(), 160);
+      document.removeEventListener('keydown', onKey);
+      resolve(result);
+    }
+    function onKey(e){ if(e.key==='Escape') close(false); }
+    cancelBtn.addEventListener('click', ()=> close(false));
+    confirmBtn.addEventListener('click', ()=> close(true));
+    overlay.addEventListener('click', (e)=>{ if(e.target===overlay) close(false); });
+    document.addEventListener('keydown', onKey);
+    confirmBtn.focus();
+  });
+}
+
 /* ---------- Stepper ---------- */
 function setStep(n){
   document.querySelectorAll('.stepper .step').forEach(li=>{
@@ -156,8 +190,13 @@ document.getElementById('add-row-btn').addEventListener('click', ()=>{
   renderMapping();
   showToast('✔ 행이 추가되었습니다.', 'success');
 });
-document.getElementById('clear-mapping-btn').addEventListener('click', ()=>{
-  if(confirm('등록된 계정 매핑을 전부 삭제할까요? 되돌릴 수 없습니다.')){
+document.getElementById('clear-mapping-btn').addEventListener('click', async ()=>{
+  const ok = await showConfirmModal({
+    title:'전체 삭제',
+    message:'등록된 계정 매핑을 전부 삭제할까요? 되돌릴 수 없습니다.',
+    confirmText:'삭제', cancelText:'취소', danger:true
+  });
+  if(ok){
     mapping = [];
     renderMapping();
     showToast('✔ 전체 삭제되었습니다.', 'success');
@@ -190,7 +229,7 @@ document.getElementById('download-template-btn').addEventListener('click', ()=>{
 function handleMappingFile(file){
   if(!file) return;
   const reader = new FileReader();
-  reader.onload = (ev)=>{
+  reader.onload = async (ev)=>{
     let wb;
     try{
       wb = XLSX.read(new Uint8Array(ev.target.result), {type:'array'});
@@ -234,10 +273,13 @@ function handleMappingFile(file){
       });
     }
     if(imported.length===0){ showError('불러올 데이터가 없습니다.'); return; }
-    if(mapping.length>0 && !confirm(`${imported.length}건을 불러옵니다. 기존에 등록된 ${mapping.length}건에 이어서 추가할까요? (취소 시 기존 내용을 덮어씁니다)`)){
-      mapping = imported;
-    } else if (mapping.length>0){
-      mapping = mapping.concat(imported);
+    if(mapping.length>0){
+      const append = await showConfirmModal({
+        title:'계정 매핑 불러오기',
+        message:`${imported.length}건을 불러옵니다. 기존에 등록된 ${mapping.length}건에 이어서 추가할까요?`,
+        confirmText:'이어서 추가', cancelText:'새로 덮어쓰기'
+      });
+      mapping = append ? mapping.concat(imported) : imported;
     } else {
       mapping = imported;
     }
