@@ -142,13 +142,37 @@ input[type=text]{
 .output-fields{display:flex; gap:16px; flex-wrap:wrap;}
 
 /* ---------- Progress steps ---------- */
-.progress{list-style:none; display:flex; gap:8px; padding:0; margin:6px 0 18px;}
+/* ---------- Progress steps (버튼처럼 보이지 않는 상태 표시) ---------- */
+.progress{list-style:none; display:flex; padding:18px 4px 4px; margin:16px 0 32px;}
 .progress li{
-  flex:1; text-align:center; font-size:12.5px; font-weight:700; color:var(--ink-soft);
-  padding:9px 4px; background:#EEF1F5; border-radius:8px; position:relative;
+  flex:1; display:flex; flex-direction:column; align-items:center; gap:7px;
+  font-size:12px; font-weight:600; color:var(--ink-soft); position:relative;
 }
-.progress li.active{background:var(--primary); color:#fff;}
-.progress li.complete{background:var(--success); color:#fff;}
+.progress li:not(:last-child)::after{
+  content:''; position:absolute; top:11px; left:calc(50% + 16px); width:calc(100% - 32px);
+  height:2px; background:var(--border); z-index:0; transition:background .3s ease;
+}
+.progress li.complete:not(:last-child)::after{background:var(--success);}
+.progress .dot{
+  width:22px; height:22px; border-radius:50%; flex-shrink:0;
+  background:#fff; border:2px solid var(--border); color:var(--ink-soft);
+  display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:700;
+  position:relative; z-index:1; transition:background .25s ease, border-color .25s ease, color .25s ease;
+}
+.progress li.active .dot{
+  border-color:var(--primary); background:var(--primary); color:#fff;
+  animation:progress-pulse 1.4s ease-in-out infinite;
+}
+.progress li.complete .dot{
+  border-color:var(--success); background:var(--success); color:#fff; font-size:0;
+}
+.progress li.complete .dot::after{content:'✓'; font-size:12px;}
+.progress li.active .label{color:var(--primary); font-weight:800;}
+.progress li.complete .label{color:var(--success);}
+@keyframes progress-pulse{
+  0%,100%{box-shadow:0 0 0 0 rgba(0,91,172,0.32);}
+  50%{box-shadow:0 0 0 6px rgba(0,91,172,0);}
+}
 
 /* ---------- Table ---------- */
 .table-wrap{max-height:440px; overflow:auto; border:1px solid var(--border); border-radius:10px;}

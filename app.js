@@ -114,7 +114,7 @@ function setProgress(state){
     const i = order.indexOf(li.dataset.p);
     li.classList.remove('active','complete');
     if(i < idx) li.classList.add('complete');
-    if(i === idx) li.classList.add('active');
+    if(i === idx) li.classList.add(state==='done' ? 'complete' : 'active');
   });
 }
 
