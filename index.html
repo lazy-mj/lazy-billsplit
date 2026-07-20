@@ -3,9 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'none'; object-src 'none'; base-uri 'self'; form-action 'none';">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; img-src 'self' data:; connect-src 'none'; object-src 'none'; base-uri 'self'; form-action 'none';">
 <title>전화요금 계정분할 자동화</title>
-<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/lazy-mj/lazy-office@main/shared/style.css">
+<link rel="stylesheet" href="extra.css">
 </head>
 <body>
 <div class="shell">
@@ -213,7 +214,8 @@
 
 <div id="toast-zone" class="toast-zone" aria-live="polite"></div>
 
-<script src="js/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/lazy-mj/lazy-office@main/shared/vendor/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/lazy-mj/lazy-office@main/shared/app-core.js"></script>
 <script src="app.js"></script>
 </body>
 </html>

@@ -43,16 +43,15 @@
 -   SheetJS (xlsx)
 -   GitHub Pages
 
+디자인(`style.css`)과 공통 UI 기능(Toast, 확인 모달, 진행 표시 등)은 자체 보유하지 않고, 같은 계정의 [`lazy-office`](https://github.com/lazy-mj/lazy-office) 저장소에서 CDN(jsDelivr)으로 불러와 사용합니다. `lazy-office`에 모인 다른 업무 자동화 도구들과 같은 디자인을 공유합니다.
+
 ## 📁 프로젝트 구조
 
 ``` text
 lazy-billsplit/
-├── index.html
-├── css/
-│   └── style.css
-├── js/
-│   ├── app.js
-│   └── xlsx.full.min.js
+├── index.html    (디자인/공통 JS는 lazy-office를 CDN으로 로드)
+├── extra.css     (이 도구만의 예외 스타일 — 분할 실행 버튼 그라데이션)
+├── app.js        (엑셀 파싱 · 분할 계산 · 검증 로직 — 이 저장소 고유)
 ├── assets/
 ├── README.md
 └── CHANGELOG.md
@@ -64,7 +63,7 @@ lazy-billsplit/
 
 ## 💡 향후 계획
 
--   업무지원 플랫폼으로 확장
+-   업무지원 플랫폼(lazy-office)으로 확장 — 진행 중
 
 ## 📄 라이선스
 

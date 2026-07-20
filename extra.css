@@ -1,0 +1,25 @@
+/* =========================================================================
+   lazy-billsplit 전용 스타일 (shared/style.css 로드 후 적용되는 오버라이드)
+   이 파일에는 "이 도구만"의 예외적인 스타일만 둡니다.
+   ========================================================================= */
+
+/* 분할 실행 버튼만 별도 강조: 그라데이션 + 호버 마이크로 인터랙션 */
+#run-split-btn{
+  background:linear-gradient(135deg, var(--primary) 0%, #7B4FE0 100%);
+  background-size:160% 160%; background-position:0% 50%;
+  border:none; box-shadow:0 4px 14px rgba(91,70,180,0.32);
+  transition:background-position .35s ease, transform .18s ease, box-shadow .18s ease;
+}
+#run-split-btn:hover:not(:disabled){
+  background-position:100% 50%;
+  transform:translateY(-2px);
+  box-shadow:0 10px 22px rgba(91,70,180,0.45);
+  filter:none;
+}
+#run-split-btn:active:not(:disabled){
+  transform:translateY(0);
+  box-shadow:0 3px 10px rgba(91,70,180,0.32);
+}
+#run-split-btn:disabled{
+  background:#B9CCE0; box-shadow:none;
+}

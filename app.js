@@ -1,7 +1,10 @@
 /* =========================================================================
-   전화요금 계정분할 자동화 — app.js
-   ⚠ 계산 로직(normKey/parseAmount/매핑 매칭/합산/정렬/엑셀 출력 서식)은
-      v2와 100% 동일합니다. 절대 수정하지 마세요. (섹션 "CALC CORE" 표시)
+   전화요금 계정분할 자동화 — app.js (lazy-billsplit)
+   ⚠ 계산 로직(normKey/parseAmount/매핑 매칭/합산/정렬/엑셀 출력 서식) 섹션은
+      "CALC CORE"로 표시되어 있습니다. 이 부분은 절대 수정하지 마세요.
+      화면 공통 기능(Toast/에러배너/확인모달/Stepper/Progress/Storage/DnD/표복사)은
+      lazy-office 저장소의 shared/app-core.js를 CDN으로 불러와 사용합니다
+      (window.AppCore). index.html의 <script> 로드 순서를 바꾸지 마세요.
    ========================================================================= */
 
 const STORAGE_KEY = 'phoneBillMapping_v1';
@@ -13,6 +16,12 @@ let lastResult = null;  // {rows, unmatched, otherDeptSkipped, memo}
 let persistEnabled = true;
 let sortState = { col: null, dir: 1 };
 let officialDeptTotals = new Map(); // dept -> {amount, sheet, deptName} — from per-department subtotal sheets (검증용, 계산 로직과 무관한 신규 부가기능)
+
+const { el, toast, error: errorBanner, dialog: dialogUi, stepper, progress: progressUi, storage, dropzone, table: tableUtil } = AppCore;
+const showToast = toast.show;
+const showError = errorBanner.show;
+const setStep = stepper.set;
+const setProgress = progressUi.set;
 
 /* ================= CALC CORE : helpers (동일, 수정 금지) ================= */
 function normKey(v){
@@ -35,100 +44,15 @@ function fmt(n){ return Number(n||0).toLocaleString('ko-KR'); }
 function headerNorm(h){ return String(h||'').replace(/\s/g,''); }
 /* ================= /CALC CORE ================= */
 
-function el(tag, cls, text){ const e=document.createElement(tag); if(cls) e.className=cls; if(text!==undefined) e.textContent=text; return e; }
-
-/* ---------- Toast (성공 메시지) ---------- */
-function showToast(message, type){
-  const zone = document.getElementById('toast-zone');
-  const t = el('div', 'toast'+(type?(' '+type):''), message);
-  zone.appendChild(t);
-  requestAnimationFrame(()=> t.classList.add('show'));
-  setTimeout(()=>{
-    t.classList.remove('show');
-    setTimeout(()=> t.remove(), 250);
-  }, 2600);
-}
-
-/* ---------- 오류 배너 (alert 대체) ---------- */
-function showError(message){
-  const zone = document.getElementById('error-banner-zone');
-  const banner = el('div','error-banner');
-  const span = el('span', undefined, '⚠ ' + message);
-  const close = el('button', undefined, '✕');
-  close.addEventListener('click', ()=> banner.remove());
-  banner.appendChild(span);
-  banner.appendChild(close);
-  zone.appendChild(banner);
-}
-
-/* ---------- 커스텀 확인 모달 (native confirm() 대체) ---------- */
-function showConfirmModal({title='', message='', confirmText='확인', cancelText='취소', danger=false}={}){
-  return new Promise((resolve)=>{
-    const overlay = el('div','modal-overlay');
-    const box = el('div','modal-box');
-    box.setAttribute('role','dialog');
-    box.setAttribute('aria-modal','true');
-    if(title) box.appendChild(el('div','modal-title', title));
-    box.appendChild(el('div','modal-message', message));
-    const actions = el('div','modal-actions');
-    const cancelBtn = el('button','btn btn-outline', cancelText);
-    const confirmBtn = el('button', 'btn '+(danger?'btn-danger':'btn-primary'), confirmText);
-    actions.appendChild(cancelBtn);
-    actions.appendChild(confirmBtn);
-    box.appendChild(actions);
-    overlay.appendChild(box);
-    document.body.appendChild(overlay);
-    requestAnimationFrame(()=> overlay.classList.add('show'));
-
-    function close(result){
-      overlay.classList.remove('show');
-      setTimeout(()=> overlay.remove(), 160);
-      document.removeEventListener('keydown', onKey);
-      resolve(result);
-    }
-    function onKey(e){ if(e.key==='Escape') close(false); }
-    cancelBtn.addEventListener('click', ()=> close(false));
-    confirmBtn.addEventListener('click', ()=> close(true));
-    overlay.addEventListener('click', (e)=>{ if(e.target===overlay) close(false); });
-    document.addEventListener('keydown', onKey);
-    confirmBtn.focus();
-  });
-}
-
-/* ---------- Stepper ---------- */
-function setStep(n){
-  document.querySelectorAll('.stepper .step').forEach(li=>{
-    const s = Number(li.dataset.step);
-    li.classList.remove('current','done');
-    if(s < n) li.classList.add('done');
-    if(s === n) li.classList.add('current');
-  });
-}
-
-/* ---------- 진행상태(업로드 분석) ---------- */
-function setProgress(state){
-  // state: idle | ready | analyzing | done
-  const order = ['idle','ready','analyzing','done'];
-  const idx = order.indexOf(state);
-  document.querySelectorAll('#progress-steps li').forEach(li=>{
-    const i = order.indexOf(li.dataset.p);
-    li.classList.remove('active','complete');
-    if(i < idx) li.classList.add('complete');
-    if(i === idx) li.classList.add(state==='done' ? 'complete' : 'active');
-  });
-}
-
 /* ---------- 계정 매핑 저장/로딩 ---------- */
 function loadPersistFlag(){
-  const v = localStorage.getItem(PERSIST_FLAG_KEY);
-  persistEnabled = v === null ? true : v === 'true';
-  document.getElementById('persist-toggle').checked = persistEnabled;
+  persistEnabled = storage.loadPersistFlag(PERSIST_FLAG_KEY, 'persist-toggle');
 }
 document.getElementById('persist-toggle').addEventListener('change', (e)=>{
   persistEnabled = e.target.checked;
-  localStorage.setItem(PERSIST_FLAG_KEY, String(persistEnabled));
+  storage.savePersistFlag(PERSIST_FLAG_KEY, persistEnabled);
   if(persistEnabled){
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(mapping));
+    storage.save(STORAGE_KEY, mapping, true);
     showToast('✔ 이 PC에 저장하도록 설정했습니다.', 'success');
   }else{
     showToast('이 PC에 저장하지 않습니다. (현재 세션에서만 사용됩니다)');
@@ -136,16 +60,11 @@ document.getElementById('persist-toggle').addEventListener('change', (e)=>{
 });
 
 function loadMapping(){
-  try{
-    const raw = localStorage.getItem(STORAGE_KEY);
-    mapping = raw ? JSON.parse(raw) : [];
-  }catch(e){ mapping = []; }
+  mapping = storage.load(STORAGE_KEY, []);
   renderMapping();
 }
 function saveMapping(){
-  if(persistEnabled){
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(mapping));
-  }
+  storage.save(STORAGE_KEY, mapping, persistEnabled);
   const status = document.getElementById('mapping-status');
   status.innerHTML = '';
   const msg = persistEnabled
@@ -165,16 +84,20 @@ function renderMapping(){
     }
     const tr = document.createElement('tr');
     const fields = ['dept','deptName','name','phone','account','owner'];
+    const fieldLabels = {dept:'부서번호',deptName:'부서명',name:'성명',phone:'전화번호',account:'계정번호',owner:'계정책임자'};
     fields.forEach(f=>{
       const td = document.createElement('td');
       const input = document.createElement('input');
       input.value = row[f] ?? '';
+      input.setAttribute('aria-label', fieldLabels[f]);
       input.addEventListener('change', ()=>{ mapping[idx][f] = input.value.trim(); saveMapping(); });
       td.appendChild(input);
       tr.appendChild(td);
     });
     const tdDel = document.createElement('td');
     const delBtn = el('button','btn btn-outline','✕');
+    delBtn.type = 'button';
+    delBtn.setAttribute('aria-label', `${row.name || row.phone || idx+1}번째 행 삭제`);
     delBtn.style.padding = '4px 8px';
     delBtn.addEventListener('click', ()=>{ mapping.splice(idx,1); renderMapping(); saveMapping(); });
     tdDel.appendChild(delBtn);
@@ -191,7 +114,7 @@ document.getElementById('add-row-btn').addEventListener('click', ()=>{
   showToast('✔ 행이 추가되었습니다.', 'success');
 });
 document.getElementById('clear-mapping-btn').addEventListener('click', async ()=>{
-  const ok = await showConfirmModal({
+  const ok = await dialogUi.confirm({
     title:'전체 삭제',
     message:'등록된 계정 매핑을 전부 삭제할까요? 되돌릴 수 없습니다.',
     confirmText:'삭제', cancelText:'취소', danger:true
@@ -274,7 +197,7 @@ function handleMappingFile(file){
     }
     if(imported.length===0){ showError('불러올 데이터가 없습니다.'); return; }
     if(mapping.length>0){
-      const append = await showConfirmModal({
+      const append = await dialogUi.confirm({
         title:'계정 매핑 불러오기',
         message:`${imported.length}건을 불러옵니다. 기존에 등록된 ${mapping.length}건에 이어서 추가할까요?`,
         confirmText:'이어서 추가', cancelText:'새로 덮어쓰기'
@@ -401,7 +324,7 @@ document.getElementById('import-raw').addEventListener('change', (e)=>{
   e.target.value = '';
 });
 
-/* ================= CALC CORE : 분할 실행 (v2와 동일, 수정 금지) ================= */
+/* ================= CALC CORE : 분할 실행 (동일, 수정 금지) ================= */
 document.getElementById('run-split-btn').addEventListener('click', ()=>{
   if(!rawWorkbook) return;
   if(mapping.length===0){
@@ -530,7 +453,7 @@ function renderResult(){
   tbody.innerHTML = '';
 
   if(!sortState.col || sortState.col==='dept' || sortState.col==='deptName'){
-    // 기본: 부서별 rowSpan 묶음 보기 (v2와 동일)
+    // 기본: 부서별 rowSpan 묶음 보기 (원본과 동일)
     let i = 0;
     while(i < rows.length){
       let j = i;
@@ -682,7 +605,7 @@ document.querySelectorAll('#result-table th[data-sort]').forEach(th=>{
   });
 });
 
-/* ================= CALC CORE : 엑셀 다운로드 (출력 서식 v2와 동일, 수정 금지) ================= */
+/* ================= CALC CORE : 엑셀 다운로드 (출력 서식 동일, 수정 금지) ================= */
 document.getElementById('download-btn').addEventListener('click', ()=>{
   if(!lastResult) return;
   const {rows, memo, costName} = lastResult;
@@ -789,83 +712,16 @@ document.getElementById('copy-btn').addEventListener('click', ()=>{
   const doneAsText = () => showToast('표 서식 없이 텍스트로 복사되었습니다. (이 브라우저는 표 복사 방식을 지원하지 않아요)');
   const fail = () => showError('복사에 실패했습니다. 결과를 다운로드한 뒤 엑셀에서 복사해주세요.');
 
-  copyTableRich(html, text, doneAsTable, doneAsText, fail);
+  tableUtil.copyRich(html, text, doneAsTable, doneAsText, fail);
 });
 
-/* 실제 브라우저 클립보드에 "표(HTML)" 형식으로 기록 시도 → 실패 시 텍스트로 대체 */
-function copyTableRich(html, text, doneAsTable, doneAsText, fail){
-  // 방법 A: 최신 Clipboard API로 text/html + text/plain 동시 기록 (가장 깨끗한 결과물)
-  if(window.ClipboardItem && navigator.clipboard && navigator.clipboard.write){
-    const item = new ClipboardItem({
-      'text/html': new Blob([html], {type:'text/html'}),
-      'text/plain': new Blob([text], {type:'text/plain'})
-    });
-    navigator.clipboard.write([item]).then(doneAsTable).catch(()=>{
-      copyViaSelection(html) ? doneAsTable() : (copyViaFallback(text) ? doneAsText() : fail());
-    });
-    return;
-  }
-  // 방법 B: 오프스크린에 위 표를 그려놓고 실제로 선택(Selection)한 뒤 복사
-  if(copyViaSelection(html)){ doneAsTable(); return; }
-  // 방법 C: 텍스트만이라도 복사
-  copyViaFallback(text) ? doneAsText() : fail();
-}
-function copyViaSelection(html){
-  try{
-    const holder = document.createElement('div');
-    holder.style.position = 'fixed';
-    holder.style.left = '-99999px';
-    holder.style.top = '0';
-    holder.innerHTML = html;
-    document.body.appendChild(holder);
-    const range = document.createRange();
-    range.selectNodeContents(holder);
-    const sel = window.getSelection();
-    sel.removeAllRanges();
-    sel.addRange(range);
-    let ok = false;
-    try{ ok = document.execCommand('copy'); }catch(e){ ok = false; }
-    sel.removeAllRanges();
-    document.body.removeChild(holder);
-    return ok;
-  }catch(e){ return false; }
-}
-function copyViaFallback(text){
-  try{
-    const ta = document.createElement('textarea');
-    ta.value = text;
-    ta.style.position = 'fixed';
-    ta.style.left = '-9999px';
-    document.body.appendChild(ta);
-    ta.focus(); ta.select();
-    const ok = document.execCommand('copy');
-    document.body.removeChild(ta);
-    return ok;
-  }catch(e){ return false; }
-}
-
 /* ---------- Drag & Drop ---------- */
-function attachDropzone(zoneId, onFile){
-  const zone = document.getElementById(zoneId);
-  const input = zone.querySelector('input[type=file]');
-  zone.addEventListener('click', ()=> input.click());
-  ['dragenter','dragover'].forEach(evt=>{
-    zone.addEventListener(evt, (e)=>{ e.preventDefault(); e.stopPropagation(); zone.classList.add('drag-over'); });
-  });
-  ['dragleave','drop'].forEach(evt=>{
-    zone.addEventListener(evt, (e)=>{ e.preventDefault(); e.stopPropagation(); zone.classList.remove('drag-over'); });
-  });
-  zone.addEventListener('drop', (e)=>{
-    const file = e.dataTransfer.files && e.dataTransfer.files[0];
-    if(file) onFile(file);
-  });
-}
-attachDropzone('mapping-dropzone', handleMappingFile);
-attachDropzone('raw-dropzone', handleRawFile);
+dropzone.attach('mapping-dropzone', handleMappingFile);
+dropzone.attach('raw-dropzone', handleRawFile);
 
 /* ---------- init ---------- */
 if (typeof XLSX === 'undefined') {
-  showError('xlsx.full.min.js 라이브러리 파일을 찾을 수 없습니다. js 폴더 안에 xlsx.full.min.js 파일을 넣어주세요. (js/README_다운로드필요.txt 참고)');
+  showError('xlsx.full.min.js 라이브러리 파일을 찾을 수 없습니다. shared/vendor 폴더 안에 xlsx.full.min.js 파일이 있는지 확인해주세요.');
 }
 loadPersistFlag();
 loadMapping();
