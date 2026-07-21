@@ -43,7 +43,7 @@
 -   SheetJS (xlsx)
 -   GitHub Pages
 
-디자인(`style.css`)과 공통 UI 기능(Toast, 확인 모달, 진행 표시 등)은 자체 보유하지 않고, 같은 계정의 [`lazy-office`](https://github.com/lazy-mj/lazy-office) 저장소에서 CDN(jsDelivr)으로 불러와 사용합니다. `lazy-office`에 모인 다른 업무 자동화 도구들과 같은 디자인을 공유합니다.
+디자인(`style.css`)과 공통 UI 기능(Toast, 확인 모달, 진행 표시, 공통 헤더 등)은 자체 보유하지 않고, 같은 계정의 [`lazy-office`](https://github.com/lazy-mj/lazy-office) 저장소에 있는 파일을 직접 불러와 사용합니다(`/lazy-office/shared/...`). 세 사이트가 모두 같은 도메인(`lazy-mj.github.io`)에 있어서 별도 CDN 없이 바로 공유됩니다. `lazy-office`에 모인 다른 업무 자동화 도구들과 같은 디자인을 공유합니다.
 
 ## 📁 프로젝트 구조
 
