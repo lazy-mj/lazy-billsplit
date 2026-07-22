@@ -5,3 +5,10 @@
    분할 실행 버튼은 이제 공용 .btn-action(글래스모피즘+메쉬그라디언트)을
    그대로 쓰므로 이 파일에 더 이상 별도 오버라이드가 필요 없습니다.
    ========================================================================= */
+
+/* 히어로의 "사용법 보기" 뱃지: 기존 lock-note 뱃지와 같은 모양(글라스 필)을 쓰되,
+   자물쇠 뱃지(블루)와 구분되도록 폰트색만 퍼플톤으로 다르게 줌 + 클릭 가능 표시 */
+.tool-hero .lock-note.guide-badge{color:#8B5CF6; cursor:pointer;}
+.tool-hero .lock-note.guide-badge .icon-svg{color:#8B5CF6;}
+.tool-hero .lock-note.guide-badge:hover{background:rgba(255,255,255,0.55);}
+.tool-hero .lock-note.guide-badge:focus-visible{outline:2px solid #8B5CF6; outline-offset:2px;}

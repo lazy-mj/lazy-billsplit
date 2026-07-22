@@ -136,6 +136,21 @@ document.getElementById('export-mapping-btn').addEventListener('click', ()=>{
   showToast('백업 파일을 다운로드했습니다.', 'success');
 });
 
+document.getElementById('guideBadge').addEventListener('keydown', (e)=>{
+  if(e.key==='Enter' || e.key===' '){ e.preventDefault(); e.target.click(); }
+});
+document.getElementById('guideBadge').addEventListener('click', ()=>{
+  dialogUi.info({
+    title:'사용법',
+    bodyHtml:`<ul>
+      <li><b>계정 매핑</b>: [계정 매핑 양식 다운로드]로 빈 엑셀을 받아 채운 뒤 업로드하면 자동으로 표에 들어옵니다. 등록한 내용은 이 브라우저에 저장되어 다음 달에도 그대로 남아있습니다 (다른 컴퓨터/브라우저에서는 다시 불러와야 해요).</li>
+      <li><b>부서별 전화 사용내역 업로드</b>: 매달 연구전략실(시설관리실)에서 배포하는 원본 파일(부서별 전화 사용 내역)을 업로드하고 [분할 실행]을 누르면 계정번호별로 자동 합산됩니다.</li>
+      <li><b>계정 매핑 양식</b>: 연구전략실(시설관리실) 배포 원본파일의 번호별요금 시트에서 부서번호/부서명/성명/전화번호를 복붙하신 뒤 계정번호, 계정책임자를 입력하시면 편해요.</li>
+      <li>매핑 키는 부서번호 + 전화번호 조합입니다 (이름은 보지 않습니다). 매핑이 안 되는 번호가 있으면 별도 카드로 보여드려요.</li>
+    </ul>`
+  });
+});
+
 document.getElementById('download-template-btn').addEventListener('click', ()=>{
   const header = ['부서번호','부서명','성명','전화번호','계정번호','계정책임자'];
   const example = ['5400','국방안전융합연구본부','홍길동','1234','25HR1234','홍길동'];
@@ -170,7 +185,11 @@ function handleMappingFile(file){
       }
     }
     if(!sheetName){
-      showError('필요한 열(부서번호/전화번호/계정번호)이 있는 시트를 찾지 못했습니다. "표준 양식 다운로드"로 받은 양식 그대로 채워서 올려주세요.');
+      await dialogUi.info({
+        title:'파일 형식을 확인해주세요',
+        bodyHtml:'필요한 열(부서번호/전화번호/계정번호)이 있는 시트를 찾지 못했습니다. "계정 매핑 양식 다운로드"로 받은 양식 그대로 채워서 올려주세요.',
+        icon:'warning'
+      });
       return;
     }
     const sheet = wb.Sheets[sheetName];
@@ -197,12 +216,13 @@ function handleMappingFile(file){
     }
     if(imported.length===0){ showError('불러올 데이터가 없습니다.'); return; }
     if(mapping.length>0){
-      const append = await dialogUi.confirm({
+      const choice = await dialogUi.confirm({
         title:'계정 매핑 불러오기',
-        message:`${imported.length}건을 불러옵니다. 기존에 등록된 ${mapping.length}건에 이어서 추가할까요?`,
-        confirmText:'이어서 추가', cancelText:'새로 덮어쓰기'
+        message:`${imported.length}건을 불러옵니다. 기존에 등록된 ${mapping.length}건을 어떻게 할까요?`,
+        confirmText:'이어서 추가', cancelText:'새로 덮어쓰기', neutralText:'취소'
       });
-      mapping = append ? mapping.concat(imported) : imported;
+      if(choice === null) return;
+      mapping = choice ? mapping.concat(imported) : imported;
     } else {
       mapping = imported;
     }

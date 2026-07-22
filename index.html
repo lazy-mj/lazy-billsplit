@@ -19,23 +19,12 @@
     <img class="tool-hero-icon" src="assets/icon-billsplit.png" alt="전화요금 계정분할 자동화 아이콘">
     <h1>전화요금 계정분할 자동화</h1>
     <p class="tool-tagline">부서별 전화요금, 몇 번의 클릭으로 계정 분할.</p>
-    <span class="lock-note"><svg class="icon-svg" width="14" height="14" viewBox="0 0 24 24"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg> 업로드한 파일은 서버로 전송되지 않습니다.</span>
+    <span class="lock-note"><svg class="icon-svg" width="14" height="14" viewBox="0 0 24 24"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg> 데이터 서버 미전송</span>
+    <span class="lock-note guide-badge" id="guideBadge" role="button" tabindex="0"><svg class="icon-svg" width="14" height="14" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg> 사용법 보기</span>
   </div>
 </section>
 
 <div class="shell">
-
-  <details class="readme">
-    <summary><svg class="icon-svg" width="16" height="16" viewBox="0 0 24 24"><path d="M12 7v14"/><path d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"/></svg> 사용법 펼쳐보기</summary>
-    <div class="body">
-      <ul>
-        <li><b>계정 매핑</b>: [계정 매핑 양식 다운로드]로 빈 엑셀을 받아 채운 뒤 업로드하면 자동으로 표에 들어옵니다. 등록한 내용은 이 브라우저에 저장되어 다음 달에도 그대로 남아있습니다 (다른 컴퓨터/브라우저에서는 다시 불러와야 해요).</li>
-        <li><b>부서별 전화 사용내역 업로드</b>: 매달 연구전략실(시설관리실)에서 배포하는 원본 파일(부서별 전화 사용 내역)을 업로드하고 [분할 실행]을 누르면 계정번호별로 자동 합산됩니다.</li>
-        <li><b>계정 매핑 양식 </b>: 연구전략실(시설관리실) 배포 원본파일의 번호별요금 시트에서 부서번호/부서명/성명/전화번호를 복붙하신 뒤 계정번호, 계정책임자를 입력하시면 편해요.</li>
-        <li>매핑 키는 부서번호 + 전화번호 조합입니다 (이름은 보지 않습니다). 매핑이 안 되는 번호가 있으면 별도 카드로 보여드려요.</li>
-      </ul>
-    </div>
-  </details>
 
   <!-- ===== STEP 인디케이터 ===== -->
   <ol class="stepper" id="stepper">
@@ -59,7 +48,8 @@
     <div class="toolbar">
       <button class="btn btn-outline" id="download-template-btn"><svg class="icon-svg" width="16" height="16" viewBox="0 0 24 24"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M10 9H8"/><path d="M16 13H8"/><path d="M16 17H8"/></svg> 계정 매핑 양식 다운로드</button>
       <button class="btn btn-outline" id="add-row-btn" data-tooltip="이 브라우저에 수동으로 사용자를 추가합니다"><svg class="icon-svg" width="16" height="16" viewBox="0 0 24 24"><path d="M5 12h14"/><path d="M12 5v14"/></svg> 행 추가</button>
-      <button class="btn btn-outline" id="export-mapping-btn" data-tooltip="이 브라우저에 저장된 사용자 매핑파일을 엑셀로 저장합니다"><svg class="icon-svg" width="16" height="16" viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2Z"/><path d="M17 21v-8H7v8"/><path d="M7 3v5h8"/></svg> 계정 매핑 파일 백업</button>
+      <button class="btn btn-outline" id="export-mapping-btn" data-tooltip="이 브라우저에 저장된 사용자 매핑파일을
+엑셀로 저장합니다"><svg class="icon-svg" width="16" height="16" viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2Z"/><path d="M17 21v-8H7v8"/><path d="M7 3v5h8"/></svg> 계정 매핑 파일 백업</button>
       <button class="btn btn-danger-outline" id="clear-mapping-btn"><svg class="icon-svg" width="16" height="16" viewBox="0 0 24 24"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/></svg> 전체 삭제</button>
     </div>
 
