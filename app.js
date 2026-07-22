@@ -289,24 +289,20 @@ function handleRawFile(file){
         return;
       }
       officialDeptTotals = buildOfficialDeptTotals(rawWorkbook);
-      const sel = document.getElementById('sheet-select');
-      sel.innerHTML = '';
-      rawWorkbook.SheetNames.forEach(n=>{
-        const opt = document.createElement('option');
-        opt.value = n; opt.textContent = n;
-        sel.appendChild(opt);
-      });
       let target = rawWorkbook.SheetNames.find(n=>headerNorm(n)==='번호별요금');
       const status = document.getElementById('raw-status');
       status.innerHTML = '';
-      if(target){
-        sel.value = target;
-        sel.style.display = 'none';
-        status.appendChild(el('div','status ok', `[번호별요금] 시트를 찾았습니다. (${file.name})`));
-      }else{
-        sel.style.display = 'inline-block';
-        status.appendChild(el('div','status warn', `[번호별요금] 시트를 자동으로 찾지 못했습니다. 아래 목록에서 직접 선택해주세요.`));
+      if(!target){
+        rawWorkbook = null;
+        dialogUi.info({
+          title:'시트를 찾지 못했어요',
+          bodyHtml:'"번호별요금" 시트를 자동으로 찾지 못했습니다. 원본 파일 형식이 맞는지 확인 후 다시 올려주세요.',
+          icon:'warning'
+        });
+        setProgress('idle');
+        return;
       }
+      status.appendChild(el('div','status ok', `[번호별요금] 시트를 찾았습니다. (${file.name})`));
       // 적요(비고) 월 자동 추출
       // 파일명 형식이 보통 "2026년 6월(5월 사용분) 부서별 전화사용 내역"처럼
       // 청구월(6월)과 사용월(5월 사용분, 괄호 안)이 함께 있으므로,
