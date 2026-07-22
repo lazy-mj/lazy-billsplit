@@ -53,7 +53,7 @@ document.getElementById('persist-toggle').addEventListener('change', (e)=>{
   storage.savePersistFlag(PERSIST_FLAG_KEY, persistEnabled);
   if(persistEnabled){
     storage.save(STORAGE_KEY, mapping, true);
-    showToast('✔ 이 PC에 저장하도록 설정했습니다.', 'success');
+    showToast('이 PC에 저장하도록 설정했습니다.', 'success');
   }else{
     showToast('이 PC에 저장하지 않습니다. (현재 세션에서만 사용됩니다)');
   }
@@ -111,7 +111,7 @@ document.getElementById('mapping-search').addEventListener('input', renderMappin
 document.getElementById('add-row-btn').addEventListener('click', ()=>{
   mapping.push({dept:'',deptName:'',name:'',phone:'',account:'',owner:''});
   renderMapping();
-  showToast('✔ 행이 추가되었습니다.', 'success');
+  showToast('행이 추가되었습니다.', 'success');
 });
 document.getElementById('clear-mapping-btn').addEventListener('click', async ()=>{
   const ok = await dialogUi.confirm({
@@ -122,7 +122,7 @@ document.getElementById('clear-mapping-btn').addEventListener('click', async ()=
   if(ok){
     mapping = [];
     renderMapping();
-    showToast('✔ 전체 삭제되었습니다.', 'success');
+    showToast('전체 삭제되었습니다.', 'success');
   }
 });
 document.getElementById('export-mapping-btn').addEventListener('click', ()=>{
@@ -133,7 +133,7 @@ document.getElementById('export-mapping-btn').addEventListener('click', ()=>{
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, '계정매핑');
   XLSX.writeFile(wb, `계정매핑_백업_${new Date().toISOString().slice(0,10)}.xlsx`);
-  showToast('✔ 백업 파일을 다운로드했습니다.', 'success');
+  showToast('백업 파일을 다운로드했습니다.', 'success');
 });
 
 document.getElementById('download-template-btn').addEventListener('click', ()=>{
@@ -145,7 +145,7 @@ document.getElementById('download-template-btn').addEventListener('click', ()=>{
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, '계정매핑');
   XLSX.writeFile(wb, `계정매핑_표준양식.xlsx`);
-  showToast('✔ 표준 양식을 다운로드했습니다.', 'success');
+  showToast('표준 양식을 다운로드했습니다.', 'success');
 });
 
 /* ---------- 계정 매핑 파일 업로드 (표준 양식 인식) ---------- */
@@ -208,7 +208,7 @@ function handleMappingFile(file){
     }
     renderMapping();
     setStep(1);
-    showToast(`✔ ${imported.length}건을 불러왔습니다.`, 'success');
+    showToast(`${imported.length}건을 불러왔습니다.`, 'success');
   };
   reader.readAsArrayBuffer(file);
 }
@@ -314,7 +314,7 @@ function handleRawFile(file){
       document.getElementById('run-split-btn').disabled = false;
       setProgress('done');
       setStep(2);
-      showToast('✔ 분석 완료', 'success');
+      showToast('분석 완료', 'success');
     }, 250); // 분석중 단계를 눈으로 확인할 수 있도록 짧은 지연
   };
   reader.readAsArrayBuffer(file);
@@ -407,7 +407,7 @@ document.getElementById('run-split-btn').addEventListener('click', ()=>{
   sortState = { col: null, dir: 1 };
   renderResult();
   setStep(3);
-  showToast('✔ 분할 완료', 'success');
+  showToast('분할 완료', 'success');
 });
 /* ================= /CALC CORE ================= */
 
@@ -639,7 +639,7 @@ document.getElementById('download-btn').addEventListener('click', ()=>{
   XLSX.utils.book_append_sheet(wb, ws, '출력결과_전화요금');
   XLSX.writeFile(wb, `전화요금분할결과_${memo.replace(/\s/g,'')}.xlsx`);
   setStep(4);
-  showToast('✔ 다운로드 완료', 'success');
+  showToast('다운로드 완료', 'success');
 });
 /* ================= /CALC CORE ================= */
 
@@ -708,7 +708,7 @@ document.getElementById('copy-btn').addEventListener('click', ()=>{
   });
   const text = tsvLines.join('\n');
 
-  const doneAsTable = () => showToast('✔ 표를 복사했습니다. 붙여넣을 때 "셀 안에 표로 넣기"를 선택해주세요.', 'success');
+  const doneAsTable = () => showToast('표를 복사했습니다. 붙여넣을 때 "셀 안에 표로 넣기"를 선택해주세요.', 'success');
   const doneAsText = () => showToast('표 서식 없이 텍스트로 복사되었습니다. (이 브라우저는 표 복사 방식을 지원하지 않아요)');
   const fail = () => showError('복사에 실패했습니다. 결과를 다운로드한 뒤 엑셀에서 복사해주세요.');
 
