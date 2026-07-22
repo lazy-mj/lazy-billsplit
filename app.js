@@ -187,7 +187,7 @@ function handleMappingFile(file){
     if(!sheetName){
       await dialogUi.info({
         title:'파일 형식을 확인해주세요',
-        bodyHtml:'필요한 열(부서번호/전화번호/계정번호)이 있는 시트를 찾지 못했습니다. "계정 매핑 양식 다운로드"로 받은 양식 그대로 채워서 올려주세요.',
+        bodyHtml:'[계정 매핑 양식 다운로드]로 받은 양식 그대로 작성해서 올려주세요.',
         icon:'warning'
       });
       return;
@@ -219,7 +219,8 @@ function handleMappingFile(file){
       const choice = await dialogUi.confirm({
         title:'계정 매핑 불러오기',
         message:`${imported.length}건을 불러옵니다. 기존에 등록된 ${mapping.length}건을 어떻게 할까요?`,
-        confirmText:'이어서 추가', cancelText:'새로 덮어쓰기', neutralText:'취소'
+        confirmText:'이어서 추가', cancelText:'새로 덮어쓰기', neutralText:'취소',
+        order:['cancel','confirm','neutral'], primaryButton:'neutral'
       });
       if(choice === null) return;
       mapping = choice ? mapping.concat(imported) : imported;
@@ -296,7 +297,7 @@ function handleRawFile(file){
         rawWorkbook = null;
         dialogUi.info({
           title:'시트를 찾지 못했어요',
-          bodyHtml:'"번호별요금" 시트를 자동으로 찾지 못했습니다. 원본 파일 형식이 맞는지 확인 후 다시 올려주세요.',
+          bodyHtml:'연구전략실(시설관리실)에서 배포한 원본 파일을 업로드하세요.',
           icon:'warning'
         });
         setProgress('idle');
