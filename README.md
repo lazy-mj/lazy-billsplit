@@ -29,9 +29,7 @@
 -   결과 파일은 사용자의 PC로 직접 다운로드됩니다.
 
 ## 🚀 사용 방법
-
-<video src="https://raw.githubusercontent.com/lazy-mj/lazy-billsplit/main/assets/demo.mp4" controls width="600"></video>
-
+https://github.com/user-attachments/assets/e1f31496-13f1-48ef-96cf-2268be2737c9
 1.  계정 매핑 엑셀 업로드
 2.  전화요금 엑셀 업로드
 3.  자동 분석 실행
