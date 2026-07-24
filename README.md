@@ -30,7 +30,8 @@
 
 ## 🚀 사용 방법
 
-<video src="./assets/demo.mp4" controls width="600"></video>
+<video src="https://raw.githubusercontent.com/lazy-mj/lazy-billsplit/main/assets/demo.mp4" controls width="600"></video>
+
 1.  계정 매핑 엑셀 업로드
 2.  전화요금 엑셀 업로드
 3.  자동 분석 실행
