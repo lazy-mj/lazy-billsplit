@@ -29,7 +29,8 @@
 -   결과 파일은 사용자의 PC로 직접 다운로드됩니다.
 
 ## 🚀 사용 방법
-![사용 예시](./assets/readme_demo.gif)
+
+<video src="./assets/demo.mp4" controls width="600"></video>
 1.  계정 매핑 엑셀 업로드
 2.  전화요금 엑셀 업로드
 3.  자동 분석 실행
