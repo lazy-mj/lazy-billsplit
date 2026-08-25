@@ -6,6 +6,16 @@
    그대로 쓰므로 이 파일에 더 이상 별도 오버라이드가 필요 없습니다.
    ========================================================================= */
 
+/* [신규] 조직개편 등으로 부서번호가 바뀐 것을 감지했을 때 쓰는 "알림(앰버)" 톤.
+   위험(danger·빨강)이 아니라 "자동으로 이어붙였으니 눈으로 한 번만 확인해달라"는 의미라
+   기존 warn 계열과 색을 구분합니다. */
+.card-notice{border-left:4px solid #B45309;}
+.step-badge-notice{background:#B45309;}
+.stat-grid .card-mini.notice{background:#FEF3C7; border-color:#FCD9A0;}
+.stat-grid .card-mini.notice .n{color:#B45309;}
+.toast.warn{background:#B45309;}
+tr.row-check td{background:#FEF3C7;}
+
 /* 히어로의 "사용법 보기" 뱃지: 기존 lock-note 뱃지와 같은 모양(글라스 필)을 쓰되,
    자물쇠 뱃지(블루)와 구분되도록 폰트색만 퍼플톤으로 다르게 줌 + 클릭 가능 표시 */
 .tool-hero .lock-note.guide-badge{color:#8B5CF6; cursor:pointer;}

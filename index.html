@@ -167,6 +167,22 @@
     </div>
   </section>
 
+  <!-- ===== CARD 3.5 : 부서번호 변경 감지 (전화번호 폴백으로 이어붙인 항목) ===== -->
+  <section class="card card-notice" id="shift-panel" data-card-step="3" style="display:none;">
+    <div class="card-head">
+      <h2><span class="step-badge step-badge-notice">!</span> 부서번호가 바뀐 것으로 보이는 항목</h2>
+      <p class="desc" id="shift-desc"></p>
+    </div>
+    <div class="table-wrap">
+      <table id="shift-table">
+        <thead>
+          <tr><th>전화번호</th><th>원본 부서</th><th>원본 성명</th><th>매핑 부서</th><th>매핑 성명</th><th>전화요금</th><th>확인</th></tr>
+        </thead>
+        <tbody id="shift-tbody"></tbody>
+      </table>
+    </div>
+  </section>
+
   <!-- ===== CARD 4 : 원본 부서별 합계 검증 ===== -->
   <section class="card" id="validation-panel" data-card-step="3" style="display:none;">
     <div class="card-head">

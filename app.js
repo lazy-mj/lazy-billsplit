@@ -376,9 +376,37 @@ document.getElementById('run-split-btn').addEventListener('click', ()=>{
 
   const knownDepts = new Set([...mapDict.keys()].map(k=>k.split('-')[0]).filter(Boolean));
 
+  /* [신규] 조직개편 대응 폴백 준비 — 아래 정확 매칭(부서번호+전화번호)이 실패한 행에만 쓰이며,
+     정확 매칭으로 잡히는 행의 결과는 예전과 100% 동일합니다.
+     조직개편으로 원본 시트의 부서번호가 아직 옛 번호일 때(예: 5450 → 5240),
+     전화번호가 양쪽 모두에서 유일한 경우에 한해 전화번호만으로 이어붙입니다.
+     이때 소속은 [① 계정 매핑]의 부서번호(= 개편 후 번호)를 따릅니다. */
+  const mapPhoneCount = new Map();
+  mapping.forEach(m=>{
+    const p = normKey(m.phone);
+    if(!p) return;
+    mapPhoneCount.set(p, (mapPhoneCount.get(p)||0) + 1);
+  });
+  const phoneDict = new Map(); // phone -> {dept, account, deptName, owner, name} — 매핑에서 유일한 번호만
+  mapping.forEach(m=>{
+    const p = normKey(m.phone);
+    if(!p || mapPhoneCount.get(p) !== 1) return;
+    phoneDict.set(p, {
+      dept: normKey(m.dept), account: (m.account||'').trim(),
+      deptName: (m.deptName||'').trim(), owner: (m.owner||'').trim(), name: (m.name||'').trim()
+    });
+  });
+  const rawPhoneCount = new Map(); // 원본에서도 유일한 번호인지 확인 (다른 사람에게 잘못 붙는 것 방지)
+  for(let r=1; r<aoa.length; r++){
+    const p = normKey(aoa[r][iPhone]);
+    if(!p) continue;
+    rawPhoneCount.set(p, (rawPhoneCount.get(p)||0) + 1);
+  }
+
   const sumMap = new Map();   // deptNo-account -> amount
   const infoMap = new Map();  // deptNo-account -> {deptName, owner}
   const unmatched = [];       // only rows whose 부서번호 is already known (likely a real registration gap)
+  const deptShift = [];       // [신규] 전화번호 폴백으로 이어붙인 행 — 부서번호가 바뀐 것으로 보이는 항목
   let otherDeptSkipped = 0;   // rows belonging to departments we don't track at all — expected, not shown
 
   for(let r=1; r<aoa.length; r++){
@@ -393,6 +421,18 @@ document.getElementById('run-split-btn').addEventListener('click', ()=>{
       const sumKey = dept+'-'+info.account;
       sumMap.set(sumKey, (sumMap.get(sumKey)||0) + amount);
       if(!infoMap.has(sumKey)) infoMap.set(sumKey, {deptName: info.deptName, owner: info.owner});
+    }else if(phone && phoneDict.has(phone) && rawPhoneCount.get(phone) === 1){
+      // [신규] 전화번호 폴백: 부서번호는 매핑(개편 후) 기준으로 집계합니다.
+      const info = phoneDict.get(phone);
+      const sumKey = info.dept+'-'+info.account;
+      sumMap.set(sumKey, (sumMap.get(sumKey)||0) + amount);
+      if(!infoMap.has(sumKey)) infoMap.set(sumKey, {deptName: info.deptName, owner: info.owner});
+      deptShift.push({
+        rawDept: dept, rawDeptName: iDeptName>=0?String(row[iDeptName]||'').trim():'',
+        rawName: iName>=0?String(row[iName]||'').trim():'',
+        mapDept: info.dept, mapDeptName: info.deptName, mapName: info.name,
+        phone, amount
+      });
     }else if(knownDepts.has(dept)){
       unmatched.push({
         dept, deptName: iDeptName>=0?String(row[iDeptName]||'').trim():'',
@@ -420,11 +460,15 @@ document.getElementById('run-split-btn').addEventListener('click', ()=>{
 
   const memo = document.getElementById('memo-input').value.trim() || `${new Date().getMonth()+1}월 전화요금`;
   const costName = document.getElementById('cost-name-input').value.trim() || '공공요금';
-  lastResult = {rows: outRows, unmatched, otherDeptSkipped, memo, costName};
+  lastResult = {rows: outRows, unmatched, deptShift, otherDeptSkipped, memo, costName};
   sortState = { col: null, dir: 1 };
   renderResult();
   setStep(3);
-  showToast('분할 완료', 'success');
+  if(deptShift.length>0){
+    showToast(`분할 완료 — 부서번호가 바뀐 것으로 보이는 ${deptShift.length}건을 전화번호로 이어붙였습니다. 아래에서 확인해주세요.`, 'warn');
+  }else{
+    showToast('분할 완료', 'success');
+  }
 });
 /* ================= /CALC CORE ================= */
 
@@ -445,7 +489,7 @@ function sortedRowsForDisplay(rows){
 }
 
 function renderResult(){
-  const {rows, unmatched, otherDeptSkipped, memo, costName} = lastResult;
+  const {rows, unmatched, deptShift = [], otherDeptSkipped, memo, costName} = lastResult;
   document.getElementById('result-panel').style.display = 'block';
 
   // stats
@@ -454,13 +498,16 @@ function renderResult(){
   const stat = document.getElementById('stat-cards');
   stat.innerHTML = '';
   const cards = [
-    ['총 전화요금(분할분)', fmt(total)+' 원', false],
-    ['분할된 계정 수', rows.length+' 건', false],
-    ['등록 누락 의심', unmatched.length+' 건', unmatched.length>0],
-    ['등록 누락 추정 금액', fmt(unmatchedTotal)+' 원', unmatchedTotal>0],
+    ['총 전화요금(분할분)', fmt(total)+' 원', ''],
+    ['분할된 계정 수', rows.length+' 건', ''],
+    ['등록 누락 의심', unmatched.length+' 건', unmatched.length>0?'warn':''],
+    ['등록 누락 추정 금액', fmt(unmatchedTotal)+' 원', unmatchedTotal>0?'warn':''],
   ];
-  cards.forEach(([l,n,warn])=>{
-    const c = el('div','card-mini'+(warn?' warn':''));
+  if(deptShift.length>0){
+    cards.push(['부서번호 변경 감지', deptShift.length+' 건', 'notice']);
+  }
+  cards.forEach(([l,n,cls])=>{
+    const c = el('div','card-mini'+(cls?' '+cls:''));
     c.appendChild(el('div','n',n));
     c.appendChild(el('div','l',l));
     stat.appendChild(c);
@@ -533,7 +580,50 @@ function renderResult(){
     uPanel.style.display = 'none';
   }
 
+  renderDeptShift(deptShift);
   renderDeptValidation(rows, unmatched);
+}
+
+/* ---------- [신규] 부서번호 변경 감지 렌더링 (전화번호 폴백으로 이어붙인 항목) ---------- */
+function renderDeptShift(deptShift){
+  const panel = document.getElementById('shift-panel');
+  const tbody = document.getElementById('shift-tbody');
+  const desc = document.getElementById('shift-desc');
+  if(!panel) return;
+  tbody.innerHTML = '';
+  if(!deptShift || deptShift.length===0){ panel.style.display = 'none'; return; }
+  panel.style.display = 'block';
+
+  const shiftTotal = deptShift.reduce((s,d)=>s+d.amount,0);
+  // 어떤 부서번호가 어디로 바뀌었는지 요약 (예: 5450 워리어능력증강연구실 → 5240 전장의사결정ADX연구실)
+  const pairs = new Map();
+  deptShift.forEach(d=>{
+    const k = d.rawDept+'>'+d.mapDept;
+    if(!pairs.has(k)) pairs.set(k, {...d, count:0, sum:0});
+    const p = pairs.get(k);
+    p.count++; p.sum += d.amount;
+  });
+  const summary = [...pairs.values()].map(p=>
+    `${p.rawDept}(${p.rawDeptName||'-'}) → ${p.mapDept}(${p.mapDeptName||'-'}) ${p.count}명 ${fmt(p.sum)}원`
+  ).join(' / ');
+
+  desc.textContent = `원본 시트의 부서번호로는 매핑을 찾지 못했지만, 전화번호가 원본·매핑 양쪽 모두에서 유일해 같은 사람으로 보고 이어붙인 항목입니다 (총 ${deptShift.length}건 ${fmt(shiftTotal)}원). 조직개편으로 원본 파일의 부서번호가 아직 옛 번호일 때 생깁니다. 집계 부서는 [① 계정 매핑]의 부서번호를 따랐습니다. ▸ ${summary} ◂ 아래 표에서 원본 성명과 매핑 성명이 같은 사람인지 확인해주세요. 다르면 [① 계정 매핑]의 전화번호를 고쳐주세요.`;
+
+  deptShift.forEach(d=>{
+    const tr = document.createElement('tr');
+    tr.appendChild(el('td', undefined, d.phone));
+    tr.appendChild(el('td', undefined, `${d.rawDept} ${d.rawDeptName||''}`.trim()));
+    tr.appendChild(el('td', undefined, d.rawName));
+    tr.appendChild(el('td', undefined, `${d.mapDept} ${d.mapDeptName||''}`.trim()));
+    tr.appendChild(el('td', undefined, d.mapName));
+    tr.appendChild(el('td','num', fmt(d.amount)));
+    const td = document.createElement('td');
+    const same = d.rawName && d.mapName && d.rawName === d.mapName;
+    td.appendChild(el('span','status-pill '+(same?'ok':'unknown'), same?'성명 일치':'확인 필요'));
+    tr.appendChild(td);
+    if(!same) tr.classList.add('row-check');
+    tbody.appendChild(tr);
+  });
 }
 
 /* ---------- [신규] 부서별 합계 검증 렌더링 (계산 로직과 무관한 부가 기능) ---------- */
@@ -553,7 +643,12 @@ function renderDeptValidation(rows, unmatched){
   unmatched.forEach(u=>{
     unmatchedTotalByDept.set(u.dept, (unmatchedTotalByDept.get(u.dept)||0) + u.amount);
   });
-  const deptSet = new Set([...matchedTotalByDept.keys(), ...unmatchedTotalByDept.keys()]);
+  // [신규] 매핑에 등록된 부서는 결과에 한 건도 없더라도 반드시 표에 세웁니다.
+  //   조직개편으로 부서번호가 통째로 달라지면 그 부서 행이 결과에서 사라지는데,
+  //   예전에는 비교 대상에서도 같이 빠져버려 "모든 부서 합계가 일치합니다"라는
+  //   잘못된 안심 메시지가 나왔습니다. (합계 0 vs 원본 소계로 불일치가 드러나게 함)
+  const mappedDepts = new Set(mapping.map(m=>normKey(m.dept)).filter(Boolean));
+  const deptSet = new Set([...matchedTotalByDept.keys(), ...unmatchedTotalByDept.keys(), ...mappedDepts]);
 
   const depts = Array.from(deptSet).sort((a,b)=>{
     const da = parseFloat(a), db = parseFloat(b);
