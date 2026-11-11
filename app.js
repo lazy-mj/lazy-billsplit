@@ -153,7 +153,7 @@ document.getElementById('guideBadge').addEventListener('click', ()=>{
 
 document.getElementById('download-template-btn').addEventListener('click', ()=>{
   const header = ['부서번호','부서명','성명','전화번호','계정번호','계정책임자'];
-  const example = ['5400','국방안전융합연구본부','홍길동','1234','25HR1234','홍길동'];
+  const example = ['5400','○○연구본부','홍길동','1234','25HR1234','홍길동'];
   const aoa = [header, example];
   const ws = XLSX.utils.aoa_to_sheet(aoa);
   ws['!cols'] = [{wch:10},{wch:22},{wch:10},{wch:10},{wch:14},{wch:12}];
@@ -595,7 +595,7 @@ function renderDeptShift(deptShift){
   panel.style.display = 'block';
 
   const shiftTotal = deptShift.reduce((s,d)=>s+d.amount,0);
-  // 어떤 부서번호가 어디로 바뀌었는지 요약 (예: 5450 워리어능력증강연구실 → 5240 전장의사결정ADX연구실)
+  // 어떤 부서번호가 어디로 바뀌었는지 요약 (예: 5450 ○○연구실 → 5240 △△연구실)
   const pairs = new Map();
   deptShift.forEach(d=>{
     const k = d.rawDept+'>'+d.mapDept;
